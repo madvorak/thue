@@ -12,7 +12,7 @@ def actuallyOverlap {β : Type} (s₁ s₂ : List (Symbol α β)) : Prop :=
 
 def System.IsDeterministicSyntax (h : System α) : Prop :=
   (∀ r ∈ h.ruleset, hasOneMarker r.input ∧ hasOneMarker r.output) ∧
-  (∀ r₁ ∈ h.ruleset, ∀ r₂ ∈ h.ruleset, ¬ actuallyOverlap r₁.input r₂.input)
+  (∀ r₁ ∈ h.ruleset, ∀ r₂ ∈ h.ruleset, actuallyOverlap r₁.input r₂.input → r₁ = r₂)
 
 lemma marker_notin_list_letters {β : Type} (B : β) (w : List α) :
   Symbol.marker B ∉ List.map Symbol.letter w :=

@@ -1,4 +1,4 @@
-import Thue.Definition
+import Thue.Determinisms
 
 
 private inductive alphabet
@@ -50,3 +50,39 @@ private example : [alphabet.a_, alphabet.a_, alphabet.b_, alphabet.b_] ∈ mysys
     simp [ruleSkip]
   apply System.Derives.tail _ _ _ _ _ fstStep
   apply System.Derives.refl
+
+private example : mysys.IsDeterministic :=
+by
+  apply deterministic_of_deterministicSyntax
+  constructor
+  · intros r rin
+    cases rin
+    · constructor
+      · use [], specials.S_, [alphabet.a_]
+        rfl
+      · use [alphabet.a_], specials.S_, []
+        rfl
+    sorry
+  · intros r rin q qin overlap
+    unfold mysys at rin qin
+    rw [List.mem_doubleton] at rin qin
+    cases rin with
+    | inl rSkip =>
+      cases qin with
+      | inl qSkip =>
+        rw [rSkip, qSkip]
+      | inr qAnih =>
+        exfalso
+        rw [rSkip, qAnih] at overlap
+        unfold actuallyOverlap at overlap
+        rcases overlap with ⟨t, ⟨t₁, t₂, t₃, teq⟩, r₁, q₁, r₃, q₃, t_of_r, t_of_q⟩
+        rw [teq] at t_of_r t_of_q
+        dsimp only [ruleSkip] at t_of_r
+        dsimp only [ruleAnih] at t_of_q
+        sorry
+    | inr rAnih =>
+      cases qin with
+      | inl qSkip =>
+        sorry
+      | inr qAnih =>
+        rw [rAnih, qAnih]
