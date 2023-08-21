@@ -25,6 +25,7 @@ variable {α : Type}
 def System.initiate (h : System α) (w : List α) : List (Symbol α h.special) :=
   Symbol.marker h.starting :: List.map Symbol.letter w
 
+
 /-- One step of rewriting -/
 def System.Transforms (h : System α) (w₁ w₂ : List (Symbol α h.special)) : Prop :=
   ∃ r ∈ h.ruleset, ∃ u v : List (Symbol α h.special), w₁ = u ++ r.input ++ v ∧ w₂ = u ++ r.output ++ v
@@ -60,6 +61,44 @@ def System.IsDeterministic' (h : System α) : Prop :=
   (∀ r ∈ h.ruleset, hasOneMarker r.input ∧ hasOneMarker r.output) ∧
   (∀ r₁ ∈ h.ruleset, ∀ r₂ ∈ h.ruleset, ¬ actuallyOverlap r₁.input r₂.input)
 
+
+lemma match_xYz {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
+    (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
+  x₁ = x₂ ∧ z₁ = z₂ :=
+by
+  have xlens : x₁.length = x₂.length
+  · have not_lt : ¬ x₁.length < x₂.length
+    · intro contr_lt
+      apply notin_z
+      sorry
+    have not_gt : ¬ x₁.length > x₂.length
+    · intro congr_gt
+      apply notin_x
+      sorry
+    have yes_le : x₁.length ≤ x₂.length
+    · exact Iff.mp Nat.not_lt not_gt
+    have yes_ge : x₁.length ≥ x₂.length
+    · exact Iff.mp Nat.not_lt not_lt
+    exact Nat.le_antisymm yes_le yes_ge
+  constructor
+  · rw [List.append_assoc, List.append_assoc] at together
+    convert congr_arg (List.take x₁.length) together
+    · rw [List.take_left]
+    · rw [xlens, List.take_left]
+  · convert congr_arg (List.drop x₁.length.succ) together
+    · rw [List.drop_left']
+      rw [List.length_append, List.length_singleton]
+    · rw [xlens, List.drop_left']
+      rw [List.length_append, List.length_singleton]
+
+lemma marker_notin_list_letters {β : Type} (B : β) (w : List α) :
+  Symbol.marker B ∉ List.map Symbol.letter w :=
+by
+  rw [List.mem_map]
+  push_neg
+  intros a _
+  apply Symbol.noConfusion
+
 lemma System.IsDeterministic'.always_hasOneMarker {h : System α} (det : h.IsDeterministic')
     {w : List α} {s : List (Symbol α h.special)} {n : ℕ} (obtained : h.Derives (h.initiate w) s n) :
   hasOneMarker s :=
@@ -70,11 +109,33 @@ by
     rw [List.map_nil, List.nil_append]
     rfl
   | tail x y m trash orig ih =>
-    clear trash w s n
+    clear trash m w s n
     rcases orig with ⟨r, rin, u, v, bef, aft⟩
+    rcases det.1 r rin with ⟨⟨u₁, X₁, v₁, r₁eq⟩, ⟨u₂, X₂, v₂, r₂eq⟩⟩
+    rw [r₁eq] at bef
+    rw [r₂eq] at aft
+    rcases ih with ⟨u', X', v', xeq⟩
+    rw [xeq] at bef
+    obtain ⟨u'_of, v'_of⟩ :
+      List.map Symbol.letter u' = u ++ List.map Symbol.letter u₁ ∧
+      List.map Symbol.letter v' = List.map Symbol.letter v₁ ++ v
+    · have reaarrange :
+        u ++ (List.map Symbol.letter u₁ ++ [Symbol.marker X₁] ++ List.map Symbol.letter v₁) ++ v =
+        (u ++ List.map Symbol.letter u₁) ++ [Symbol.marker X₁] ++ (List.map Symbol.letter v₁ ++ v)
+      · simp only [List.append_assoc]
+      rw [reaarrange] at bef
+      apply match_xYz bef
+      · apply marker_notin_list_letters
+      · apply marker_notin_list_letters
+    use u'.take u.length ++ u₂, X₂, v₂ ++ v'.drop v₁.length
+    rw [List.map_append, List.map_append, List.map_take, List.map_drop]
+    rw [u'_of, v'_of]
+    have eqlens : v₁.length = (v₁.map Symbol.letter).length
+    · rw [List.length_map]
+      exact h.special
+    rw [List.take_left, eqlens, List.drop_left]
     rw [aft]
-    have fact := det.1 r rin
-    sorry
+    simp only [List.append_assoc]
 
 theorem deterministic_of_deterministic' (h : System α) :
   h.IsDeterministic' → h.IsDeterministic :=
@@ -82,12 +143,17 @@ by
   intro ass
   intros w s n hyp x y transs
   rcases transs with ⟨⟨r₁, rin₁, u₁, v₁, bef₁, aft₁⟩, ⟨r₂, rin₂, u₂, v₂, bef₂, aft₂⟩⟩
+  rcases ass.always_hasOneMarker hyp with ⟨sₗ, sₘ, sᵣ, s_eq⟩
   have same_r : r₁ = r₂
-  · obtain ⟨inp₁, out₁⟩ := ass.1 r₁ rin₁
-    obtain ⟨inp₂, out₂⟩ := ass.1 r₂ rin₂
+  · rcases ass.1 r₁ rin₁ with ⟨inp₁, out₁⟩
+    rcases ass.1 r₂ rin₂ with ⟨inp₂, out₂⟩
     sorry
+  rw [same_r] at bef₁
   have same_u : u₁ = u₂
-  · sorry
+  · rw [s_eq] at bef₁ bef₂
+    rcases (ass.1 r₂ rin₂).1 with ⟨u', X', v', r₂_eq⟩
+    rw [r₂_eq] at bef₁ bef₂
+    sorry
   have same_v : v₁ = v₂
   · sorry
   rw [aft₁, aft₂, same_r, same_u, same_v]
