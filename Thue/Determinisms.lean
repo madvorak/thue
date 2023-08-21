@@ -15,6 +15,15 @@ def System.IsDeterministicSyntax (h : System α) : Prop :=
   (∀ r ∈ h.ruleset, hasOneMarker r.input ∧ hasOneMarker r.output) ∧
   (∀ r₁ ∈ h.ruleset, ∀ r₂ ∈ h.ruleset, actuallyOverlap r₁.input r₂.input → r₁ = r₂)
 
+
+lemma actuallyOverlap_symm {β : Type} (s₁ s₂ : List (Symbol α β)) :
+  actuallyOverlap s₁ s₂ ↔ actuallyOverlap s₂ s₁ :=
+by
+  constructor
+  repeat
+    · rintro ⟨t, thom, hyp₁, hyp₂⟩
+      exact ⟨t, thom, hyp₂, hyp₁⟩
+
 lemma marker_notin_list_letters {β : Type} (B : β) (w : List α) :
   Symbol.marker B ∉ List.map Symbol.letter w :=
 by
@@ -43,11 +52,11 @@ by
     obtain ⟨u'_of, v'_of⟩ :
       List.map Symbol.letter u' = u ++ List.map Symbol.letter u₁ ∧
       List.map Symbol.letter v' = List.map Symbol.letter v₁ ++ v
-    · have reaarrange :
+    · have rearrange :
         u ++ (List.map Symbol.letter u₁ ++ [Symbol.marker X₁] ++ List.map Symbol.letter v₁) ++ v =
         (u ++ List.map Symbol.letter u₁) ++ [Symbol.marker X₁] ++ (List.map Symbol.letter v₁ ++ v)
       · simp only [List.append_assoc]
-      rw [reaarrange] at bef
+      rw [rearrange] at bef
       apply match_xYz bef
       · apply marker_notin_list_letters
       · apply marker_notin_list_letters

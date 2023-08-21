@@ -51,6 +51,20 @@ private example : [alphabet.a_, alphabet.a_, alphabet.b_, alphabet.b_] ∈ mysys
   apply System.Derives.tail _ _ _ _ _ fstStep
   apply System.Derives.refl
 
+private lemma ruleSkip_doesnt_overlap_ruleAnih :
+  ¬ actuallyOverlap ruleSkip.input ruleAnih.input :=
+by
+  intro overlap
+  unfold actuallyOverlap at overlap
+  rcases overlap with ⟨t, ⟨t₁, t₂, t₃, teq⟩, ⟨r₁, r₃, t_of_r⟩, ⟨q₁, q₃, t_of_q⟩⟩
+  rw [teq] at t_of_r t_of_q
+  dsimp only [ruleSkip] at t_of_r
+  dsimp only [ruleAnih] at t_of_q
+  rw [←List.three_singletons_eq_tripleton] at t_of_q
+  rw [←List.append_assoc, ←List.append_assoc, List.append_assoc _ [b]] at t_of_q
+  have := match_xYz t_of_q sorry sorry
+  sorry
+
 private example : mysys.IsDeterministic :=
 by
   apply deterministic_of_deterministicSyntax
@@ -86,15 +100,12 @@ by
       | inr qAnih =>
         exfalso
         rw [rSkip, qAnih] at overlap
-        unfold actuallyOverlap at overlap
-        rcases overlap with ⟨t, ⟨t₁, t₂, t₃, teq⟩, ⟨r₁, r₃, t_of_r⟩, ⟨q₁, q₃, t_of_q⟩⟩
-        rw [teq] at t_of_r t_of_q
-        dsimp only [ruleSkip] at t_of_r
-        dsimp only [ruleAnih] at t_of_q
-        sorry
+        exact ruleSkip_doesnt_overlap_ruleAnih overlap
     | inr rAnih =>
       cases qin with
       | inl qSkip =>
-        sorry
+        exfalso
+        rw [rAnih, qSkip, actuallyOverlap_symm] at overlap
+        exact ruleSkip_doesnt_overlap_ruleAnih overlap
       | inr qAnih =>
         rw [rAnih, qAnih]

@@ -2,6 +2,14 @@ import Mathlib.Data.List.Basic
 
 variable {α : Type}
 
+lemma List.two_singletons_eq_doubleton {a b : α} :
+  [a] ++ [b] = [a, b] :=
+rfl
+
+lemma List.three_singletons_eq_tripleton {a b c : α} :
+  [a] ++ [b] ++ [c] = [a, b, c] :=
+rfl
+
 -- from `https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean`
 lemma List.mem_doubleton {a b c : α} :
   a ∈ [b, c] ↔ a = b ∨ a = c :=
