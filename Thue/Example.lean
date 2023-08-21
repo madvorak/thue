@@ -19,7 +19,7 @@ private def ruleAnih : Rule alphabet specials := ⟨[a, S, b], [S]⟩
 
 private def mysys : System alphabet := ⟨specials, specials.S_, specials.S_, [ruleSkip, ruleAnih]⟩
 
-private example : [alphabet.a_, alphabet.a_, alphabet.b_, alphabet.b_] ∈ mysys.language := by
+private example : [alphabet.a_, alphabet.a_, alphabet.b_, alphabet.b_] ∈ mysys.Semidecides := by
   use 4
   have lastStep : mysys.Transforms [a, S, b] [S]
   · use ruleAnih
