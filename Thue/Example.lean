@@ -56,13 +56,25 @@ by
   apply deterministic_of_deterministicSyntax
   constructor
   · intros r rin
-    cases rin
-    · constructor
+    unfold mysys at rin
+    rw [List.mem_doubleton] at rin
+    cases rin with
+    | inl rSkip =>
+      constructor
       · use [], specials.S_, [alphabet.a_]
+        rw [rSkip]
         rfl
       · use [alphabet.a_], specials.S_, []
+        rw [rSkip]
         rfl
-    sorry
+    | inr rAnih =>
+      constructor
+      · use [alphabet.a_], specials.S_, [alphabet.b_]
+        rw [rAnih]
+        rfl
+      · use [], specials.S_, []
+        rw [rAnih]
+        rfl
   · intros r rin q qin overlap
     unfold mysys at rin qin
     rw [List.mem_doubleton] at rin qin
@@ -75,7 +87,7 @@ by
         exfalso
         rw [rSkip, qAnih] at overlap
         unfold actuallyOverlap at overlap
-        rcases overlap with ⟨t, ⟨t₁, t₂, t₃, teq⟩, r₁, q₁, r₃, q₃, t_of_r, t_of_q⟩
+        rcases overlap with ⟨t, ⟨t₁, t₂, t₃, teq⟩, ⟨r₁, r₃, t_of_r⟩, ⟨q₁, q₃, t_of_q⟩⟩
         rw [teq] at t_of_r t_of_q
         dsimp only [ruleSkip] at t_of_r
         dsimp only [ruleAnih] at t_of_q

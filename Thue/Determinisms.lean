@@ -7,8 +7,9 @@ def hasOneMarker {β : Type} (s : List (Symbol α β)) : Prop :=
     s = List.map Symbol.letter u ++ [Symbol.marker X] ++ List.map Symbol.letter v
 
 def actuallyOverlap {β : Type} (s₁ s₂ : List (Symbol α β)) : Prop :=
-  ∃ t : List (Symbol α β), hasOneMarker t ∧
-    ∃ u₁ u₂ v₁ v₂ : List (Symbol α β), u₁ ++ s₁ ++ v₁ = t ∧ u₂ ++ s₂ ++ v₂ = t
+  ∃ t : List (Symbol α β), (hasOneMarker t ∧ (
+    (∃ u₁ v₁ : List (Symbol α β), u₁ ++ s₁ ++ v₁ = t) ∧
+    (∃ u₂ v₂ : List (Symbol α β), u₂ ++ s₂ ++ v₂ = t)))
 
 def System.IsDeterministicSyntax (h : System α) : Prop :=
   (∀ r ∈ h.ruleset, hasOneMarker r.input ∧ hasOneMarker r.output) ∧
