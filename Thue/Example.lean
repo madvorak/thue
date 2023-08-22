@@ -14,6 +14,11 @@ private def a : Symb := Symbol.letter alphabet.a_
 private def b : Symb := Symbol.letter alphabet.b_
 private def S : Symb := Symbol.marker specials.S_
 
+private lemma a_neq_b : a ≠ b :=
+by
+  intro contr
+  exact alphabet.noConfusion (Symbol.letter.inj contr)
+
 private def ruleSkip : Rule alphabet specials := ⟨[S, a], [a, S]⟩
 private def ruleAnih : Rule alphabet specials := ⟨[a, S, b], [S]⟩
 
@@ -60,10 +65,18 @@ by
   rw [teq] at t_of_r t_of_q
   dsimp only [ruleSkip] at t_of_r
   dsimp only [ruleAnih] at t_of_q
+  rw [←List.two_singletons_eq_doubleton] at t_of_r
+  rw [List.append_assoc, List.append_assoc] at t_of_r
+  obtain ⟨-, r_t₃⟩ := match_xYz' t_of_r sorry sorry
   rw [←List.three_singletons_eq_tripleton] at t_of_q
   rw [←List.append_assoc, ←List.append_assoc, List.append_assoc _ [b]] at t_of_q
-  have := match_xYz t_of_q sorry sorry
-  sorry
+  obtain ⟨-, q_t₃⟩ := match_xYz t_of_q sorry sorry
+  have th_a : (List.map Symbol.letter t₃).head? = some a
+  · sorry
+  have th_b : (List.map Symbol.letter t₃).head? = some b
+  · sorry
+  apply a_neq_b
+  rw [←Option.some_inj, ←th_a, ←th_b]
 
 private example : mysys.IsDeterministic :=
 by

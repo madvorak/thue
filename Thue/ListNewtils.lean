@@ -44,3 +44,17 @@ by
       rw [List.length_append, List.length_singleton]
     · rw [xlens, List.drop_left']
       rw [List.length_append, List.length_singleton]
+
+lemma match_xYz' {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ ([Y₁] ++ z₁) = x₂ ++ [Y₂] ++ z₂)
+    (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
+  x₁ = x₂ ∧ z₁ = z₂ :=
+by
+  rw [←List.append_assoc] at together
+  exact match_xYz together notin_x notin_z
+
+lemma match_xYz'' {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ ([Y₂] ++ z₂))
+    (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
+  x₁ = x₂ ∧ z₁ = z₂ :=
+by
+  rw [←List.append_assoc] at together
+  exact match_xYz together notin_x notin_z
