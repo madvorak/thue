@@ -1,4 +1,5 @@
 import Mathlib.Data.List.Basic
+import Mathlib.Tactic.Linarith
 
 variable {α : Type}
 
@@ -16,24 +17,66 @@ lemma List.mem_doubleton {a b c : α} :
 by
   rw [List.mem_cons, List.mem_singleton]
 
+-- from `https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean`
+lemma List.length_append_append {x y z : List α} :
+  (x ++ y ++ z).length = x.length + y.length + z.length :=
+by
+  rw [List.length_append, List.length_append]
+
+-- from `https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean`
+lemma List.reverse_append_append {x y z : List α} :
+  (x ++ y ++ z).reverse = z.reverse ++ y.reverse ++ x.reverse :=
+by
+  rw [List.reverse_append, List.reverse_append, List.append_assoc]
+
+lemma middle_xYz_left {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
+    (longer : x₂.length < x₁.length) :
+  Y₂ ∈ x₁ :=
+by
+  have middle := congr_fun (congr_arg List.get? together) x₂.length
+  rw [
+    List.append_assoc x₂,
+    List.get?_append_right x₂.length.le_refl,
+    Nat.sub_self,
+    List.singleton_append,
+    List.get?_cons_zero,
+    List.append_assoc x₁,
+    List.get?_append longer,
+  ] at middle
+  exact List.get?_mem middle
+
 lemma match_xYz {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
     (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
   x₁ = x₂ ∧ z₁ = z₂ :=
 by
   have xlens : x₁.length = x₂.length
-  · have not_lt : ¬ x₁.length < x₂.length
-    · intro contr_lt
-      apply notin_z
-      sorry
-    have not_gt : ¬ x₁.length > x₂.length
-    · intro congr_gt
+  · have not_gt : ¬ x₁.length > x₂.length
+    · intro contra_gt
       apply notin_x
-      sorry
-    have yes_le : x₁.length ≤ x₂.length
-    · exact Iff.mp Nat.not_lt not_gt
-    have yes_ge : x₁.length ≥ x₂.length
-    · exact Iff.mp Nat.not_lt not_lt
-    exact Nat.le_antisymm yes_le yes_ge
+      exact middle_xYz_left together contra_gt
+    have not_lt : ¬ x₁.length < x₂.length
+    · intro contra_lt
+      apply notin_z
+      have reversed := congr_arg List.reverse together
+      rw [
+        List.reverse_append_append,
+        List.reverse_append_append,
+        List.reverse_singleton,
+        List.reverse_singleton,
+      ] at reversed
+      rw [←List.mem_reverse]
+      apply middle_xYz_left reversed
+      rw [List.length_reverse, List.length_reverse]
+      have total := congr_arg List.length together
+      rw [
+        List.length_append_append,
+        List.length_append_append,
+        List.length_singleton,
+        List.length_singleton,
+      ] at total
+      linarith
+    rw [Nat.not_lt] at not_gt not_lt
+    exact Nat.le_antisymm not_gt not_lt
   constructor
   · rw [List.append_assoc, List.append_assoc] at together
     convert congr_arg (List.take x₁.length) together

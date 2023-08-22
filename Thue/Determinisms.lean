@@ -1,4 +1,5 @@
-import Thue.Definition
+import Thue.Classes
+import Thue.ListNewtils
 
 variable {α : Type}
 

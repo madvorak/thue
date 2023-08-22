@@ -1,5 +1,4 @@
 import Mathlib.Computability.Language
-import Thue.ListNewtils
 
 
 /-- Sum type of alphabet `α` and special symbols `β` -/
@@ -40,25 +39,3 @@ inductive System.Derives (h : System α) : List (Symbol α h.special) → List (
 /-- Language recognized by given semi-Thue system. -/
 def System.Semidecides (h : System α) : Language α :=
   { w | ∃ n : ℕ, h.Derives (h.initiate w) [Symbol.marker h.accepting] n }
-
-/-- Definition of recursively-enumerable languages in terms of semi-Thue systems. -/
-def Language.IsRE (L : Language α) : Prop :=
-  ∃ h : System α, h.Semidecides = L
-
-
-def System.IsNtime (h : System α) (f : ℕ → ℕ) : Prop :=
-  ∃ c : ℕ, ∀ w : List α, ∀ s : List (Symbol α h.special), ∀ n : ℕ, h.Derives (h.initiate w) s n →
-    n ≤ c * f w.length
-
-def Language.InNtime (L : Language α) (f : ℕ → ℕ) : Prop :=
-  ∃ h : System α, h.Semidecides = L ∧ h.IsNtime f
-
-def System.IsDeterministic (h : System α) : Prop :=
-  ∀ w : List α, ∀ s : List (Symbol α h.special), ∀ n : ℕ, h.Derives (h.initiate w) s n →
-    ∀ x y : List (Symbol α h.special), h.Transforms s x ∧ h.Transforms s y → x = y
-
-def System.IsDtime (h : System α) (f : ℕ → ℕ) : Prop :=
-  h.IsDeterministic ∧ h.IsNtime f
-
-def Language.InDtime (L : Language α) (f : ℕ → ℕ) : Prop :=
-  ∃ h : System α, h.Semidecides = L ∧ h.IsDtime f
