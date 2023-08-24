@@ -1,6 +1,4 @@
---import Mathlib.Analysis.Asymptotics.Asymptotics
 import Thue.Definition
-
 
 variable {α : Type}
 
