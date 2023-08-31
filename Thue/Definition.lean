@@ -31,7 +31,7 @@ def System.Transforms (h : System α) (w₁ w₂ : List (Symbol α h.special)) :
   ∃ r ∈ h.ruleset, ∃ u v : List (Symbol α h.special), w₁ = u ++ r.input ++ v ∧ w₂ = u ++ r.output ++ v
 
 /-- Closure (reflexive+transitive) of the above, with step counting. Predicate `h.derives s t n` means
-    the semi-Thue system `h` can transform `t` to `n` in exactly `n` rewriting step. -/
+    the semi-Thue system `h` can transform `s` to `t` in exactly `n` rewriting step. -/
 inductive System.Derives (h : System α) : List (Symbol α h.special) → List (Symbol α h.special) → ℕ → Prop
   | refl (w : List (Symbol α h.special)) : h.Derives w w 0
   | tail (u v w : List (Symbol α h.special)) (n : ℕ) : h.Derives u v n → h.Transforms v w → h.Derives u w n.succ

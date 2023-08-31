@@ -50,8 +50,9 @@ by
     rw [r₂eq] at aft
     rcases ih with ⟨u', X', v', xeq⟩
     rw [xeq] at bef
-    obtain ⟨u'_of, v'_of⟩ :
-      List.map Symbol.letter u' = u ++ List.map Symbol.letter u₁ ∧
+    obtain ⟨u'_of, -, v'_of⟩ :
+      List.map Symbol.letter u' = u ++ List.map Symbol.letter u₁
+      ∧ Symbol.marker X' = Symbol.marker X₁ ∧
       List.map Symbol.letter v' = List.map Symbol.letter v₁ ++ v
     · have rearrange :
         u ++ (List.map Symbol.letter u₁ ++ [Symbol.marker X₁] ++ List.map Symbol.letter v₁) ++ v =

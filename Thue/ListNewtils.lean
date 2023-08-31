@@ -12,7 +12,7 @@ lemma List.three_singletons_eq_tripleton {a b c : α} :
 rfl
 
 section kopie
--- copied from `https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean`
+-- copied from https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean
 variable {a b c : α} {x y z : List α}
 
 lemma List.mem_doubleton :
@@ -50,7 +50,7 @@ by
 
 lemma match_xYz {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
     (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
-  x₁ = x₂ ∧ z₁ = z₂ :=
+  x₁ = x₂ ∧ Y₁ = Y₂ ∧ z₁ = z₂ :=
 by
   have xlens : x₁.length = x₂.length
   · have not_gt : ¬ x₁.length > x₂.length
@@ -85,6 +85,11 @@ by
     convert congr_arg (List.take x₁.length) together
     · rw [List.take_left]
     · rw [xlens, List.take_left]
+  constructor
+  · have chopped := congr_arg (List.drop x₁.length) together
+    rw [List.append_assoc, List.append_assoc, List.drop_left, xlens, List.drop_left] at chopped
+    convert congr_arg List.head? chopped
+    simp
   · convert congr_arg (List.drop x₁.length.succ) together
     · rw [List.drop_left']
       rw [List.length_append, List.length_singleton]
@@ -93,14 +98,15 @@ by
 
 lemma match_xYz' {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ ([Y₁] ++ z₁) = x₂ ++ [Y₂] ++ z₂)
     (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
-  x₁ = x₂ ∧ z₁ = z₂ :=
+  x₁ = x₂ ∧ Y₁ = Y₂ ∧ z₁ = z₂ :=
 by
   rw [←List.append_assoc] at together
   exact match_xYz together notin_x notin_z
 
 lemma match_xYz'' {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ ([Y₂] ++ z₂))
     (notin_x : Y₂ ∉ x₁) (notin_z : Y₂ ∉ z₁) :
-  x₁ = x₂ ∧ z₁ = z₂ :=
+  x₁ = x₂ ∧ Y₁ = Y₂ ∧ z₁ = z₂ :=
 by
   rw [←List.append_assoc] at together
   exact match_xYz together notin_x notin_z
+
