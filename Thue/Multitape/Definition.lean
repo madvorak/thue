@@ -33,8 +33,9 @@ def Multi.terminate (M : Multi α) (s : Co α M.β) : Prop :=
 
 /-- One rewriting step. -/
 def Multi.Transforms (M : Multi α) (x y : Co α M.β) : Prop :=
-  ∃ r ∈ M.ruleset, ∃ u v : Co α M.β,
-    ∀ i : Fin M.e.succ, x i = u i ++ r.inputs i ++ v i ∧ y i = u i ++ r.outputs i ++ v i
+  ∃ r ∈ M.ruleset, ∀ i : Fin M.e.succ,
+    ∃ u v : List ((Fin.cons α M.β : Fin M.e.succ → Type) i),
+      x i = u ++ r.inputs i ++ v ∧ y i = u ++ r.outputs i ++ v
 
 /-- Closure (reflexive+transitive) of `M.Transforms` with step counting. Predicate `M.Derives s t n` means
     the multi-tape semi-Thue system `M` can transform `s` to `t` in exactly `n` rewriting step. -/
