@@ -18,7 +18,7 @@ structure Multi (α : Type) where    -- alphabet for words
   embed : α → τ 0                   -- embedding words onto the top tape
   ruleset : List (Mrule k τ)        -- rewrite rules
   starting : Tapes k τ              -- initialization strings
-  accepting : ∀ i : ℕ, Option (τ i) -- accepting / halting condition(s)
+  accepting : List.TProd (Option ∘ τ) (List.range k) -- accepting / halting condition(s)
 
 
 variable {α : Type}
@@ -30,7 +30,7 @@ M.starting -- Function.update M.starting 0 (M.starting 0 ++ w.map M.embed) -- TO
 /-- Does `M` consider `s` to be in accepting state? -/
 def Multi.terminate (M : Multi α) (s : Tapes M.k M.τ) : Prop :=
   ∀ i : ℕ, (ok : i < M.k) →
-    M.accepting i = none ∨ M.accepting i = (s.elim (Iff.mpr List.mem_range ok)).head?
+sorry --    M.accepting i = none ∨ M.accepting i = (s.elim (Iff.mpr List.mem_range ok)).head?
 
 
 /-- One rewriting step. -/
