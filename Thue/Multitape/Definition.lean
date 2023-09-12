@@ -30,7 +30,8 @@ M.starting -- Function.update M.starting 0 (M.starting 0 ++ w.map M.embed) -- TO
 /-- Does `M` consider `s` to be in accepting state? -/
 def Multi.terminate (M : Multi α) (s : Tapes M.k M.τ) : Prop :=
   ∀ i : ℕ, (ok : i < M.k) →
-sorry --    M.accepting i = none ∨ M.accepting i = (s.elim (Iff.mpr List.mem_range ok)).head?
+    let oki := Iff.mpr List.mem_range ok;
+    M.accepting.elim oki = none ∨ M.accepting.elim oki = (s.elim oki).head?
 
 
 /-- One rewriting step. -/
