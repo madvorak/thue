@@ -28,43 +28,32 @@ structure Multi (α : Type) where -- alphabet for words
 
 variable {α : Type}
 
+def Multi.oki (M : Multi α) {i : ℕ} (hiMk : i < M.k) : i ∈ List.range M.k := by
+  rwa [List.mem_range]
+
 /-- Initialize `M` with input `w` on which the computation should be done. -/
 def Multi.initiate (M : Multi α) (w : List α) : Tapes M.k M.τ := by
   unfold Tapes
-  cases hMk : M.k with
-  | zero =>
-    exfalso
-    have kpos := M.k_pos
-    rw [hMk] at kpos
-    contradiction
-  | succ n =>
-    have cut_head : List.range n.succ = 0 :: (List.range n).map Nat.succ
-    · exact List.range_succ_eq_map n
-    rw [cut_head]
-    apply List.TProd.replaceHead
-    · rw [←cut_head]
-      have Mstart := M.starting
-      rw [hMk] at Mstart
-      exact Mstart
-    · have zero_in : 0 ∈ List.range M.k
-      · exact Iff.mpr List.mem_range M.k_pos
-      exact (M.starting.elim zero_in).append (w.map M.embed)
+  rw [←Nat.succ_pred_eq_of_pos M.k_pos, List.range_succ_eq_map]
+  apply List.TProd.replaceHead
+  · rw [←List.range_succ_eq_map]
+    convert M.starting
+    exact Nat.succ_pred_eq_of_pos M.k_pos
+  · exact (M.starting.elim (M.oki M.k_pos)).append (w.map M.embed)
 
 /-- Does `M` consider `s` to be in accepting state? -/
 def Multi.terminate (M : Multi α) (s : Tapes M.k M.τ) : Prop :=
   ∀ i : ℕ, (ok : i < M.k) →
-    let oki := Iff.mpr List.mem_range ok;
-    M.accepting.elim oki = none ∨ M.accepting.elim oki = (s.elim oki).head?
+    M.accepting.elim (M.oki ok) = none ∨ M.accepting.elim (M.oki ok) = (s.elim (M.oki ok)).head?
 
 
 /-- One rewriting step. -/
 def Multi.Transforms (M : Multi α) (x y : Tapes M.k M.τ) : Prop :=
   ∃ r ∈ M.ruleset, ∀ i : ℕ, (ok : i < M.k) →
     ∃ u v : List (M.τ i),
-      let oki := Iff.mpr List.mem_range ok;
-      let rᵢ : List (M.τ i) := r.inputs.elim oki;
-      let rₒ : List (M.τ i) := r.outputs.elim oki;
-      x.elim oki = u ++ rᵢ ++ v ∧ y.elim oki = u ++ rₒ ++ v
+      let rᵢ : List (M.τ i) := r.inputs.elim (M.oki ok);
+      let rₒ : List (M.τ i) := r.outputs.elim (M.oki ok);
+      x.elim (M.oki ok) = u ++ rᵢ ++ v ∧ y.elim (M.oki ok) = u ++ rₒ ++ v
 
 /-- Closure (reflexive+transitive) of `M.Transforms` with step counting. Predicate `M.Derives s t n` means
     the multi-tape semi-Thue system `M` can transform `s` to `t` in exactly `n` rewriting step. -/
