@@ -53,8 +53,41 @@ private def rulesRep := [move0, move1, uturn, rewind0, rewind1, ahead, check0, c
 private def machineRep : Multi (Option (Fin 2)) :=
   Multi.mk 2 (Nat.succ_pos 1) tau id rulesRep ([none], [2, 2, 5], ()) (none, some 7, ())
 
+private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
+    (hyp: let v' := List.map some v ; v' ++ [none] ++ v' = w) :
+  Multi.Derives machineRep
+    (Multi.initiate machineRep w)
+    (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
+    666 :=
+by
+  sorry
 
-example : (langRepetition (Fin 2)).InMRE :=
+private theorem langRepetition_is_RE : (langRepetition (Fin 2)).InMRE :=
 by
   use machineRep
-  sorry
+  unfold Multi.Semidecides
+  unfold langRepetition
+  ext w
+  rw [Set.mem_setOf_eq, Set.mem_setOf_eq]
+  constructor
+  · sorry
+  · rintro ⟨v, hyp⟩
+    use 666 -- TODO
+    use (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
+    constructor
+    · exact easyDirection hyp
+    simp only [Multi.terminate, machineRep, Function.comp_apply]
+    intro i
+    intro ok
+    cases i with
+    | zero =>
+      left
+      sorry
+    | succ n =>
+      cases n with
+      | zero =>
+        right
+        sorry
+      | succ n =>
+        simp [machineRep] at ok
+        contradiction
