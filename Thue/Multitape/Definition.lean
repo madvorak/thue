@@ -2,6 +2,13 @@ import Mathlib.Computability.Language
 import Mathlib.Data.Prod.TProd
 
 
+def List.TProd.tail {ι : Type} {α : ι → Type} {d : ι} {l : List ι}
+  (x : (d::l).TProd α) : l.TProd α := x.snd
+
+def List.TProd.replaceHead {ι : Type} {α : ι → Type} {d : ι} {l : List ι}
+  (x : (d::l).TProd α) (v : α d) : (d::l).TProd α := ⟨v, x.tail⟩
+
+
 @[reducible]
 def Tapes (k : ℕ) (τ : ℕ → Type) : Type :=
   List.TProd (List ∘ τ) (List.range k)
@@ -14,6 +21,7 @@ structure Mrule (k : ℕ) (τ : ℕ → Type) where
 /-- Multi-tape semi-Thue system (or "multi-string rewriting system") -/
 structure Multi (α : Type) where    -- alphabet for words
   k : ℕ                             -- number of tapes
+  k_pos : 0 < k
   τ : ℕ → Type                      -- tape alphabets
   embed : α → τ 0                   -- embedding words onto the top tape
   ruleset : List (Mrule k τ)        -- rewrite rules
@@ -24,8 +32,34 @@ structure Multi (α : Type) where    -- alphabet for words
 variable {α : Type}
 
 /-- Initialize `M` with input `w` on which the computation should be done. -/
-def Multi.initiate (M : Multi α) (w : List α) : Tapes M.k M.τ :=
-M.starting -- Function.update M.starting 0 (M.starting 0 ++ w.map M.embed) -- TODO
+def Multi.initiate (M : Multi α) (w : List α) : Tapes M.k M.τ := by
+  unfold Tapes
+  have start := M.starting
+  unfold Tapes at start
+  /-have mknz : 0 < M.k := M.k_pos
+  have mknz' : 1 ≤ M.k := mknz
+  have zzzz : ∃ z : ℕ, M.k = z.succ
+  · cases M.k with
+    | zero => sorry
+    | succ n => use n
+  cases zzzz with
+  | intro z zmk => -/
+  cases M.k with
+  | zero => sorry -- contradicts `M.k_pos`
+  | succ n =>
+    -- change List.TProd (List ∘ M.τ) (List.range n.succ) at start
+    have cut_head : List.range n.succ = 0 :: (List.range n).map Nat.succ
+    · exact List.range_succ_eq_map n
+    rw [cut_head]
+    -- rw [List.TProd, List.foldr, ←List.TProd]
+    apply List.TProd.replaceHead
+    · rw [←cut_head]
+      sorry -- exact start -- ha hek?
+    · have zero_in : 0 ∈ List.range M.k
+      · exact Iff.mpr List.mem_range M.k_pos
+      exact (M.starting.elim zero_in).append (w.map M.embed)
+
+-- M.starting -- Function.update M.starting 0 (M.starting 0 ++ w.map M.embed) -- TODO
 
 /-- Does `M` consider `s` to be in accepting state? -/
 def Multi.terminate (M : Multi α) (s : Tapes M.k M.τ) : Prop :=

@@ -20,10 +20,10 @@ Succeed:
 45
 -/
 
-private def copy0 : Mrule 2 tau :=
+private def move0 : Mrule 2 tau :=
   tauRule [none, some 0] [none] [2] [0, 2]
 
-private def copy1 : Mrule 2 tau :=
+private def move1 : Mrule 2 tau :=
   tauRule [none, some 1] [none] [2] [1, 2]
 
 private def uturn : Mrule 2 tau :=
@@ -48,10 +48,10 @@ private def endYes : Mrule 2 tau :=
   tauRule [none] [] [4, 5] [7]
 
 
-private def rulesRep := [copy0, copy1, uturn, rewind0, rewind1, ahead, check0, check1, endYes]
+private def rulesRep := [move0, move1, uturn, rewind0, rewind1, ahead, check0, check1, endYes]
 
 private def machineRep : Multi (Option (Fin 2)) :=
-  Multi.mk 2 tau id rulesRep ([none], [2, 2, 5], ()) (none, some 7, ())
+  Multi.mk 2 (Nat.succ_pos 1) tau id rulesRep ([none], [2, 2, 5], ()) (none, some 7, ())
 
 
 example : (langRepetition (Fin 2)).InMRE :=
