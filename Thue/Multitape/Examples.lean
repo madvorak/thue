@@ -54,18 +54,15 @@ private def machineRep : Multi (Option (Fin 2)) :=
   Multi.mk 1 tau id rulesRep ([none], [2, 2, 5], ()) (none, some 7, ())
 
 private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
-    (hyp: let v' := List.map some v ; v' ++ [none] ++ v' = w) :
+    (hyp : let v' := List.map some v ; v' ++ [none] ++ v' = w) :
   Multi.Derives machineRep
     (Multi.initialize machineRep w)
     (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
     666 :=
 by
-  unfold Multi.initialize
-  simp
-  simp only [convertTapesHeadTail]
-  simp
-  simp only [convertTapesUniform]
-  simp
+  simp [Multi.initialize, Tapes.toTProdCons, tapesOfTProdCons, List.TProd.replaceHead]
+  convert_to Multi.Derives machineRep (none :: w, machineRep.starting.snd) _ 666
+  · simp [machineRep]
   sorry
 
 private theorem langRepetition_is_RE : (langRepetition (Fin 2)).InMRE :=
