@@ -62,6 +62,10 @@ private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
 by
   unfold Multi.initialize
   simp
+  simp only [convertTapesHeadTail]
+  simp
+  simp only [convertTapesUniform]
+  simp
   sorry
 
 private theorem langRepetition_is_RE : (langRepetition (Fin 2)).InMRE :=

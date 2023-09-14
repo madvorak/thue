@@ -2,13 +2,28 @@ import Mathlib.Computability.Language
 import Mathlib.Data.Prod.TProd
 
 
+@[reducible]
 def List.TProd.replaceHead {ι : Type} {α : ι → Type} {d : ι} {l : List ι}
   (x : (d::l).TProd α) (v : α d) : (d::l).TProd α := ⟨v, x.snd⟩
-
 
 @[reducible]
 def Tapes (e : ℕ) (τ : ℕ → Type) : Type :=
   List.TProd (List ∘ τ) (List.range e.succ)
+
+@[reducible]
+def convertTapesHeadTail {e : ℕ} {τ : ℕ → Type} :
+  Tapes e τ → List.TProd (List ∘ τ) (0 :: (List.range e).map Nat.succ) :=
+by
+  rw [←List.range_succ_eq_map]
+  exact id
+
+@[reducible]
+def convertTapesUniform {e : ℕ} {τ : ℕ → Type} :
+  List.TProd (List ∘ τ) (0 :: (List.range e).map Nat.succ) → Tapes e τ :=
+by
+  rw [←List.range_succ_eq_map]
+  exact id
+
 
 /-- Rewrite rule -/
 structure Mrule (e : ℕ) (τ : ℕ → Type) where
@@ -27,17 +42,24 @@ structure Multi (α : Type) where -- alphabet for words
 
 variable {α : Type}
 
+@[reducible]
 def Multi.oki (M : Multi α) {i : ℕ} (hiMk : i ≤ M.e) : i ∈ List.range M.e.succ := by
   rwa [List.mem_range, Nat.lt_succ]
 
 /-- Initialize `M` with input `w` on which the computation should be done. -/
-def Multi.initialize (M : Multi α) (w : List α) : Tapes M.e M.τ := by
+@[reducible]
+def Multi.initialize (M : Multi α) (w : List α) : Tapes M.e M.τ :=
+  convertTapesUniform <|
+    @List.TProd.replaceHead ℕ (List ∘ M.τ) 0 ((List.range M.e).map Nat.succ)
+      (convertTapesHeadTail M.starting)
+      ((M.starting.elim (M.oki (Nat.zero_le M.e))).append (w.map M.embed))
+/-by
   unfold Tapes
   rw [List.range_succ_eq_map]
   apply List.TProd.replaceHead
   · rw [←List.range_succ_eq_map]
     convert M.starting
-  · exact (M.starting.elim (M.oki (Nat.zero_le M.e))).append (w.map M.embed)
+  · exact (M.starting.elim (M.oki (Nat.zero_le M.e))).append (w.map M.embed)-/
 
 /-- Does `M` consider `s` to be in accepting state? -/
 def Multi.terminate (M : Multi α) (s : Tapes M.e M.τ) : Prop :=
