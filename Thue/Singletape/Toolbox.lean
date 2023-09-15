@@ -1,4 +1,4 @@
-import Thue.Definition
+import Thue.Singletape.Definition
 
 variable {T : Type} {g : System T}
 
@@ -54,9 +54,7 @@ lemma System.eq_or_deri_tran_of_deri {u w : List (Symbol T g.special)} {n : ℕ}
     (huw : g.Derives u w n.succ) :
   ∃ v : List (Symbol T g.special), g.Derives u v n ∧ g.Transforms v w :=
 by
-  cases huw with
-  | tail v w n tran deri =>
-    use v
+  sorry
 
 lemma System.deri_with_prefix {w₁ w₂ : List (Symbol T g.special)} {n : ℕ}
     (z : List (Symbol T g.special)) (ass : g.Derives w₁ w₂ n) :

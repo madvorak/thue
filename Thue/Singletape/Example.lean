@@ -1,4 +1,4 @@
-import Thue.Determinisms
+import Thue.Singletape.Determinisms
 
 
 private inductive alphabet

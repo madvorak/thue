@@ -1,6 +1,12 @@
 import Mathlib.Computability.Language
 import Mathlib.Data.Prod.TProd
 
+def List.TProd.replaceHead {ι : Type} {α : ι → Type} {d : ι} {l : List ι}
+  (x : (d::l).TProd α) (v : α d) : (d::l).TProd α :=
+⟨v, x.snd⟩
+
+
+section defStructures
 
 def Tapes (e : ℕ) (τ : ℕ → Type) : Type :=
   List.TProd (List ∘ τ) (List.range e.succ)
@@ -19,6 +25,8 @@ structure Multi (α : Type) where -- alphabet for words
   starting : Tapes e τ           -- initialization strings
   accepting : List.TProd (Option ∘ τ) (List.range e.succ)
 
+end defStructures
+
 
 def Tapes.toTProdCons {e : ℕ} {τ : ℕ → Type} :
   Tapes e τ → List.TProd (List ∘ τ) (0 :: (List.range e).map Nat.succ) :=
@@ -27,10 +35,6 @@ cast (congr_arg (List.TProd (List ∘ τ)) (List.range_succ_eq_map e))
 def tapesOfTProdCons {e : ℕ} {τ : ℕ → Type} :
   List.TProd (List ∘ τ) (0 :: (List.range e).map Nat.succ) → Tapes e τ :=
 cast (congr_arg (List.TProd (List ∘ τ)) (List.range_succ_eq_map e).symm)
-
-def List.TProd.replaceHead {ι : Type} {α : ι → Type} {d : ι} {l : List ι}
-  (x : (d::l).TProd α) (v : α d) : (d::l).TProd α :=
-⟨v, x.snd⟩
 
 variable {α : Type}
 
@@ -47,6 +51,8 @@ def Multi.terminate (M : Multi α) (s : Tapes M.e M.τ) : Prop :=
   ∀ i : ℕ, (ok : i ≤ M.e) →
     M.accepting.elim (M.oki ok) = none ∨ M.accepting.elim (M.oki ok) = (s.elim (M.oki ok)).head?
 
+
+section defPredicates
 
 /-- One rewriting step. -/
 def Multi.Transforms (M : Multi α) (x y : Tapes M.e M.τ) : Prop :=
@@ -70,8 +76,9 @@ def Multi.Semidecides (M : Multi α) : Language α :=
 def Language.InMRE (L : Language α) : Prop :=
   ∃ M : Multi α, M.Semidecides = L
 
-
 /-- Semantic definition of deterministic computation. -/
 def Multi.IsDeterministic (M : Multi α) : Prop :=
   ∀ w : List α, ∀ n : ℕ, ∀ s : Tapes M.e M.τ, M.Derives (M.initialize w) s n →
     ∀ x y : Tapes M.e M.τ, M.Transforms s x ∧ M.Transforms s y → x = y
+
+end defPredicates

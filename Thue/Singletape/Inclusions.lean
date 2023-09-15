@@ -1,4 +1,4 @@
-import Thue.Classes
+import Thue.Singletape.Classes
 
 
 variable {α : Type}

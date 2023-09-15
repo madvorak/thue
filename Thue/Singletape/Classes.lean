@@ -1,4 +1,4 @@
-import Thue.Definition
+import Thue.Singletape.Definition
 
 variable {α : Type}
 

@@ -1,5 +1,6 @@
 import Mathlib.Data.List.Basic
 import Mathlib.Tactic.Linarith
+import Grammars.Utilities.ListUtils
 
 variable {α : Type}
 
@@ -11,26 +12,6 @@ lemma List.three_singletons_eq_tripleton {a b c : α} :
   [a] ++ [b] ++ [c] = [a, b, c] :=
 rfl
 
-section kopie
--- copied from https://github.com/madvorak/chomsky/blob/main/Grammars/Utilities/ListUtils.lean
-variable {a b c : α} {x y z : List α}
-
-lemma List.mem_doubleton :
-  a ∈ [b, c] ↔ a = b ∨ a = c :=
-by
-  rw [List.mem_cons, List.mem_singleton]
-
-lemma List.length_append_append :
-  (x ++ y ++ z).length = x.length + y.length + z.length :=
-by
-  rw [List.length_append, List.length_append]
-
-lemma List.reverse_append_append :
-  (x ++ y ++ z).reverse = z.reverse ++ y.reverse ++ x.reverse :=
-by
-  rw [List.reverse_append, List.reverse_append, List.append_assoc]
-
-end kopie
 
 private lemma middle_xYz_left {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
     (longer : x₂.length < x₁.length) :
@@ -109,4 +90,3 @@ lemma match_xYz'' {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x
 by
   rw [←List.append_assoc] at together
   exact match_xYz together notin_x notin_z
-
