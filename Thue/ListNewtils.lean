@@ -12,6 +12,10 @@ lemma List.three_singletons_eq_tripleton {a b c : α} :
   [a] ++ [b] ++ [c] = [a, b, c] :=
 rfl
 
+lemma List.singleton_append_cons_eq_doubleton_append (a b : α) (l : List α) :
+  [a] ++ b :: l = [a, b] ++ l :=
+rfl
+
 
 private lemma middle_xYz_left {x₁ x₂ z₁ z₂ : List α} {Y₁ Y₂ : α} (together : x₁ ++ [Y₁] ++ z₁ = x₂ ++ [Y₂] ++ z₂)
     (longer : x₂.length < x₁.length) :

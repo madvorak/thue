@@ -1,5 +1,6 @@
 import Thue.Multitape.Toolbox
 import Thue.Multitape.Languages
+import Thue.ListNewtils
 import Mathlib.Tactic.Ring
 
 
@@ -57,13 +58,62 @@ private def machineRep : Multi (Option (Fin 2)) :=
 
 private def emb2fin8 : Fin 2 → Fin 8 := Fin.castLE (by decide)
 
+private lemma epochScan_aux {v : List (Fin 2)} {n : ℕ} (hn : n ≤ v.length) :
+  machineRep.Derives
+    ([none] ++ List.map some v ++ [none] ++ List.map some v,
+      ([5, 2, 6] : List (Fin 8)), ())
+    ([none] ++ List.map some (v.drop n) ++ [none] ++ List.map some v,
+      [5] ++ List.map emb2fin8 (v.take n) ++ [2, 6], ())
+    n :=
+by
+  induction n with
+  | zero =>
+    apply Multi.deri_self
+  | succ n ih =>
+    specialize ih sorry
+    apply Multi.deri_of_deri_tran ih
+    cases v.drop n with
+    | nil => sorry
+    | cons a l =>
+      have vdropsucc : v.drop n.succ = l
+      · sorry
+      have vtakesucc : v.take n.succ = v.take n ++ [a]
+      · sorry
+      rw [vdropsucc, vtakesucc]
+      rw [List.map_cons, List.singleton_append_cons_eq_doubleton_append]
+      rw [List.map_append, List.map_singleton, ←List.append_assoc]
+      rw [List.append_assoc _ [emb2fin8 a] _]
+      by_cases a_is : a = 0
+      · rw [a_is]
+        use move0
+        constructor
+        · simp [machineRep, rulesRep]
+        intros i ok
+        cases i with
+        | zero =>
+          use [], List.map some l ++ [none] ++ List.map some v
+          simp
+          constructor
+          · simp
+            sorry
+          · simp
+            sorry
+        | succ n =>
+          sorry
+      have a_is1 : a = 1
+      · sorry
+      sorry
+
 private lemma epochScan {v : List (Fin 2)} :
   machineRep.Derives
     ([none] ++ List.map some v ++ [none] ++ List.map some v, ([5, 2, 6] : List (Fin 8)), ())
     ([none, none] ++ List.map some v, [5] ++ List.map emb2fin8 v ++ [2, 6], ())
     v.length :=
 by
-  sorry
+  convert epochScan_aux (show v.length ≤ v.length by rfl)
+  · rw [List.drop_length, List.map_nil, List.append_nil]
+    rfl
+  · rw [List.take_length]
 
 private lemma stepUturn {v : List (Fin 2)} :
   machineRep.Transforms
@@ -85,7 +135,17 @@ private lemma stepAhead {v : List (Fin 2)} :
     ([none, none] ++ List.map some v, [5, 3] ++ List.map emb2fin8 v ++ [6], ())
     ([none, none] ++ List.map some v, [4] ++ List.map emb2fin8 v ++ [6], ()) :=
 by
-  sorry
+  use ahead
+  constructor
+  · simp [machineRep, rulesRep]
+  intros i ok
+  cases i with
+  | zero =>
+    use [], List.map some v
+    sorry
+  | succ z =>
+    use [], List.map emb2fin8 v ++ [6]
+    sorry
 
 private lemma epochCheck {v : List (Fin 2)} :
   machineRep.Derives
