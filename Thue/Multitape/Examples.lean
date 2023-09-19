@@ -1,5 +1,6 @@
-import Thue.Multitape.Definition
+import Thue.Multitape.Toolbox
 import Thue.Multitape.Languages
+--import Mathlib.Tactic.ExtractLets
 
 
 @[reducible]
@@ -51,18 +52,50 @@ private def endYes : Mrule 1 tau :=
 private def rulesRep := [move0, move1, uturn, rewind0, rewind1, ahead, check0, check1, endYes]
 
 private def machineRep : Multi (Option (Fin 2)) :=
-  Multi.mk 1 tau id rulesRep ([none], [2, 2, 5], ()) (none, some 7, ())
+  Multi.mk 1 tau id rulesRep ([none], [6, 2, 5], ()) (none, some 7, ())
+
+
+private def liftFin : Fin 2 → Fin 8 :=
+  fun ⟨a, ha⟩ => ⟨a, (Nat.lt_trans ha (show 2 < 8 by decide))⟩
+
+private lemma firstEpoch {v : List (Fin 2)} :
+  machineRep.Derives
+    (none :: (List.map some v ++ [none] ++ List.map some v), machineRep.starting.snd)
+    ([none, none] ++ List.map some v, 6 :: List.map liftFin v ++ [2, 5], ())
+    200 := -- TODO replace constants
+by
+  sorry
+
+private lemma lastStep :
+  machineRep.Transforms
+    (([none] : List (Option (Fin 2))), ([4, 5] : List (Fin 8)), ())
+    (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ()) :=
+by
+  use endYes
+  constructor
+  · simp [machineRep, rulesRep]
+  intros i ok
+  cases i with
+  | zero =>
+    use [], []
+    simp [machineRep, rulesRep, endYes, tauRule]
+  | succ z =>
+    use [], []
+    simp [machineRep, rulesRep, endYes, tauRule]
 
 private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
     (hyp : let v' := List.map some v ; v' ++ [none] ++ v' = w) :
-  Multi.Derives machineRep
+  machineRep.Derives
     (Multi.initialize machineRep w)
     (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
-    666 :=
+    666 := -- TODO replace constants
 by
   simp [Multi.initialize, Tapes.toTProdCons, tapesOfTProdCons, List.TProd.replaceHead]
-  convert_to Multi.Derives machineRep (none :: w, machineRep.starting.snd) _ 666
+  convert_to Multi.Derives machineRep (none :: w, machineRep.starting.snd) _ (665 + 1)
   · simp [machineRep]
+  apply Multi.deri_of_deri_tran _ lastStep
+  rw [←hyp, show 665 = 200 + 465 by decide] -- TODO replace constants
+  apply Multi.deri_of_deri_deri firstEpoch
   sorry
 
 private theorem langRepetition_is_RE : (langRepetition (Fin 2)).InMRE :=
@@ -75,22 +108,20 @@ by
   constructor
   · sorry
   · rintro ⟨v, hyp⟩
-    use 666 -- TODO
+    use 666 -- TODO replace constants
     use (([] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
     constructor
     · exact easyDirection hyp
-    simp only [Multi.terminate, machineRep, Function.comp_apply]
-    intro i
-    intro ok
+    intros i ok
     cases i with
     | zero =>
       left
-      sorry
+      simp [machineRep, List.TProd.elim]
     | succ n =>
       cases n with
       | zero =>
         right
-        sorry
+        simp [machineRep, List.TProd.elim]
       | succ n =>
-        simp [machineRep] at ok
+        simp only [machineRep] at ok
         contradiction
