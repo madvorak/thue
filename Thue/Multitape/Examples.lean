@@ -1,6 +1,6 @@
 import Thue.Multitape.Toolbox
 import Thue.Multitape.Languages
---import Mathlib.Tactic.ExtractLets
+import Mathlib.Tactic.Ring
 
 
 @[reducible]
@@ -61,7 +61,7 @@ private lemma firstEpoch {v : List (Fin 2)} :
   machineRep.Derives
     (none :: (List.map some v ++ [none] ++ List.map some v), machineRep.starting.snd)
     ([none, none] ++ List.map some v, 6 :: List.map emb2fin8 v ++ [2, 5], ())
-    200 := -- TODO replace constants
+    v.length :=
 by
   sorry
 
@@ -76,7 +76,7 @@ private lemma secondEpoch {v : List (Fin 2)} :
   machineRep.Derives
     ([none, none] ++ List.map some v, [6] ++ List.map emb2fin8 v ++ [3, 5], ())
     ([none, none] ++ List.map some v, [6, 3] ++ List.map emb2fin8 v ++ [5], ())
-    200 := -- TODO replace constants
+    v.length :=
 by
   sorry
 
@@ -91,11 +91,11 @@ private lemma thirdEpoch {v : List (Fin 2)} :
   machineRep.Derives
     ([none, none] ++ List.map some v, [4] ++ List.map emb2fin8 v ++ [5], ())
     ([none, none], ([4, 5] : List (Fin 8)), ())
-    263 := -- TODO replace constants
+    v.length :=
 by
   sorry
 
-private lemma lastStep :
+private lemma stepYes :
   machineRep.Transforms
     (([none, none] : List (Option (Fin 2))), ([4, 5] : List (Fin 8)), ())
     (([none] : List (Option (Fin 2))), ([7] : List (Fin 8)), ()) :=
@@ -113,24 +113,30 @@ by
     simp [machineRep, rulesRep, endYes, tauRule]
 
 private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
-    (hyp : let v' := List.map some v ; v' ++ [none] ++ v' = w) :
+    (hyp : List.map some v ++ [none] ++ List.map some v = w) :
   machineRep.Derives
     (Multi.initialize machineRep w)
     (([none] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
-    666 := -- TODO replace constants
+    (3 * v.length + 3) :=
 by
-  simp [Multi.initialize, Tapes.toTProdCons, tapesOfTProdCons, List.TProd.replaceHead]
-  convert_to Multi.Derives machineRep (none :: w, machineRep.starting.snd) _ (665 + 1)
+  show
+    machineRep.Derives
+      (machineRep.starting.fst.append (List.map machineRep.embed w), machineRep.starting.snd)
+      ([none], ([7] : List (Fin 8)), ())
+      (3 * List.length v + 3)
+  convert_to
+    machineRep.Derives
+      (none :: w, machineRep.starting.snd)
+      ([none], ([7] : List (Fin 8)), ())
+      (v.length + 1 + v.length + 1 + v.length + 1)
   · simp [machineRep]
-  apply Multi.deri_of_deri_tran _ lastStep
+  · ring
   rw [←hyp]
-  rw [show 665 = 200 + 465 by decide] -- TODO replace constants
-  apply Multi.deri_of_deri_deri firstEpoch
-  apply Multi.deri_of_tran_deri stepUturn
-  rw [show 464 = 200 + 264 by decide] -- TODO replace constants
-  apply Multi.deri_of_deri_deri secondEpoch
-  apply Multi.deri_of_tran_deri stepAhead
-  apply thirdEpoch
+  apply Multi.deri_of_deri_tran _ stepYes
+  apply Multi.deri_of_deri_deri _ thirdEpoch
+  apply Multi.deri_of_deri_tran _ stepAhead
+  apply Multi.deri_of_deri_deri _ secondEpoch
+  apply Multi.deri_of_deri_tran firstEpoch stepUturn
 
 private theorem langRepetition_is_RE : (langRepetition (Fin 2)).InMRE :=
 by
@@ -142,7 +148,7 @@ by
   constructor
   · sorry
   · rintro ⟨v, hyp⟩
-    use 666 -- TODO replace constants
+    use 3 * v.length + 3
     use (([none] : List (Option (Fin 2))), ([7] : List (Fin 8)), ())
     constructor
     · exact easyDirection hyp
