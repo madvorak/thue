@@ -12,6 +12,10 @@ private def tau : ℕ → Type
 private def tauRule (u₁ u₂ : List (Option (Fin 2))) (v₁ v₂ : List (Fin 8)) : Mrule 1 tau :=
   Mrule.mk (u₁, v₁, ()) (u₂, v₂, ())
 
+lemma elim_one (ok : 1 ∈ List.range (Nat.succ 1)) (α : ℕ → Type) (a : α 0) (b : α 1) :
+  @List.TProd.elim ℕ α _ (List.range (Nat.succ 1)) (a, b, ()) 1 ok = b :=
+rfl
+
 /-
 Start:
 ∅w = ∅v∅v
@@ -38,7 +42,7 @@ private def rewind1 : Mrule 1 tau :=
   tauRule [none, none] [none, none] [1, 3] [3]
 
 private def ahead : Mrule 1 tau :=
-  tauRule [none, none] [none] [5, 3] [4]
+  tauRule [none, none] [none, none] [5, 3] [4]
 
 private def check0 : Mrule 1 tau :=
   tauRule [none, none, some 0] [none] [4, 0] [4]
@@ -70,8 +74,9 @@ by
   | zero =>
     apply Multi.deri_self
   | succ n ih =>
-    specialize ih sorry
+    specialize ih (le_of_lt hn)
     apply Multi.deri_of_deri_tran ih
+    --rw [List.cons_drop_succ]
     cases v.drop n with
     | nil => sorry
     | cons a l =>
@@ -120,7 +125,26 @@ private lemma stepUturn {v : List (Fin 2)} :
     ([none, none] ++ List.map some v, [5] ++ List.map emb2fin8 v ++ [2, 6], ())
     ([none, none] ++ List.map some v, [5] ++ List.map emb2fin8 v ++ [3, 6], ()) :=
 by
-  sorry
+  use uturn
+  constructor
+  · simp [machineRep, rulesRep]
+  intros i ok
+  match i with
+  | 0 =>
+    use [], List.map some v
+    constructor
+    · rfl
+    · rfl
+  | 1 =>
+    use [5] ++ List.map emb2fin8 v, ([6] : List (Fin 8))
+    constructor
+    · show 5 :: List.map emb2fin8 v ++ [2, 6] = 5 :: (List.map emb2fin8 v ++ [2] ++ [6])
+      simp
+    · show 5 :: List.map emb2fin8 v ++ [3, 6] = 5 :: (List.map emb2fin8 v ++ [3] ++ [6])
+      simp
+  | n+2 =>
+    exfalso
+    contradiction
 
 private lemma epochRewind {v : List (Fin 2)} :
   machineRep.Derives
@@ -142,10 +166,19 @@ by
   cases i with
   | zero =>
     use [], List.map some v
-    sorry
+    constructor
+    · rfl
+    · rfl
   | succ z =>
-    use [], List.map emb2fin8 v ++ [6]
-    sorry
+    cases z with
+    | zero =>
+      use [], List.map emb2fin8 v ++ [6]
+      constructor
+      · rfl
+      · rfl
+    | succ _ =>
+      exfalso
+      contradiction
 
 private lemma epochCheck {v : List (Fin 2)} :
   machineRep.Derives
@@ -167,7 +200,9 @@ by
   cases i with
   | zero =>
     use [], []
-    simp [machineRep, rulesRep, endYes, tauRule]
+    constructor
+    · rfl
+    · rfl
   | succ z =>
     use [], []
     simp [machineRep, rulesRep, endYes, tauRule]
