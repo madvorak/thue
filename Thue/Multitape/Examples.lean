@@ -32,10 +32,10 @@ private def uturn : Mrule 1 tau :=
   tauRule [none, none] [none, none] [2] [3]
 
 private def rewind0 : Mrule 1 tau :=
-  tauRule [none, none] [none, none] [0, 3] [3]
+  tauRule [none, none] [none, none] [0, 3] [3, 0]
 
 private def rewind1 : Mrule 1 tau :=
-  tauRule [none, none] [none, none] [1, 3] [3]
+  tauRule [none, none] [none, none] [1, 3] [3, 1]
 
 private def ahead : Mrule 1 tau :=
   tauRule [none, none] [none, none] [5, 3] [4]
@@ -136,13 +136,63 @@ by
     · show [5] ++ List.map emb2fin8 v ++ [3, 6] = [5] ++ (List.map emb2fin8 v ++ [3] ++ [6])
       simp
 
+private lemma epochRewind_aux {v : List (Fin 2)} {n : ℕ} (hn : n ≤ v.length) :
+  machineRep.Derives
+    ([none, none] ++ List.map some v,
+      [5] ++ List.map emb2fin8 (v.take n) ++ [3] ++ List.map emb2fin8 (v.drop n) ++ [6],
+      ())
+    ([none, none] ++ List.map some v,
+      [5, 3] ++ List.map emb2fin8 v ++ [6],
+      ())
+    n :=
+by
+  induction n with
+  | zero =>
+    unfold List.drop
+    unfold List.take
+    rw [List.map_nil, List.append_nil, List.two_singletons_eq_doubleton]
+    apply Multi.deri_self
+  | succ n ih =>
+    have hn' : n < v.length
+    · exact hn
+    apply Multi.deri_of_tran_deri _ (ih (le_of_lt hn'))
+    rw [List.take_succ]
+    have nth_valid : Option.toList (v.get? n) = [v.get! n]
+    · sorry
+    rw [nth_valid]
+    by_cases nth_char : v.get! n = 0
+    · use rewind0
+      constructor
+      · simp [machineRep, rulesRep]
+      intro i iok
+      match i with
+      | 0 =>
+        use [], v.map some
+        constructor
+        · rfl
+        · rfl
+      | 1 =>
+        use [5] ++ List.map emb2fin8 (v.take n), (v.drop n.succ).map emb2fin8 ++ [6]
+        constructor
+        · convert_to
+            [5] ++ (v.take n ++ [v.get! n]).map emb2fin8 ++ [3] ++
+              (v.drop n.succ).map emb2fin8 ++ [6] =
+            ([5] ++ (v.take n).map emb2fin8) ++ [0, 3] ++
+              ((v.drop n.succ).map emb2fin8 ++ [6])
+          simp [nth_char]
+        · simp -- TODO !!!
+          sorry
+    · sorry
+
 private lemma epochRewind {v : List (Fin 2)} :
   machineRep.Derives
     ([none, none] ++ List.map some v, [5] ++ List.map emb2fin8 v ++ [3, 6], ())
     ([none, none] ++ List.map some v, [5, 3] ++ List.map emb2fin8 v ++ [6], ())
     v.length :=
 by
-  sorry
+  convert epochRewind_aux (show v.length ≤ v.length by rfl) using 3
+  rw [List.drop_length, List.take_length, List.map_nil, List.append_nil]
+  rw [←List.two_singletons_eq_doubleton, ←List.append_assoc]
 
 private lemma stepAhead {v : List (Fin 2)} :
   machineRep.Transforms
