@@ -12,10 +12,6 @@ private def tau : ℕ → Type
 private def tauRule (u₁ u₂ : List (Option (Fin 2))) (v₁ v₂ : List (Fin 8)) : Mrule 1 tau :=
   Mrule.mk (u₁, v₁, ()) (u₂, v₂, ())
 
-lemma elim_one (ok : 1 ∈ List.range (Nat.succ 1)) (α : ℕ → Type) (a : α 0) (b : α 1) :
-  @List.TProd.elim ℕ α _ (List.range (Nat.succ 1)) (a, b, ()) 1 ok = b :=
-rfl
-
 /-
 Start:
 ∅w = ∅v∅v
@@ -76,7 +72,6 @@ by
   | succ n ih =>
     specialize ih (le_of_lt hn)
     apply Multi.deri_of_deri_tran ih
-    --rw [List.cons_drop_succ]
     cases v.drop n with
     | nil => sorry
     | cons a l =>
@@ -94,8 +89,8 @@ by
         constructor
         · simp [machineRep, rulesRep]
         intros i ok
-        cases i with
-        | zero =>
+        match i with
+        | 0 =>
           use [], List.map some l ++ [none] ++ List.map some v
           simp
           constructor
@@ -103,11 +98,9 @@ by
             sorry
           · simp
             sorry
-        | succ n =>
+        | 1 =>
           sorry
-      have a_is1 : a = 1
       · sorry
-      sorry
 
 private lemma epochScan {v : List (Fin 2)} :
   machineRep.Derives
@@ -138,13 +131,10 @@ by
   | 1 =>
     use [5] ++ List.map emb2fin8 v, ([6] : List (Fin 8))
     constructor
-    · show 5 :: List.map emb2fin8 v ++ [2, 6] = 5 :: (List.map emb2fin8 v ++ [2] ++ [6])
+    · show [5] ++ List.map emb2fin8 v ++ [2, 6] = [5] ++ (List.map emb2fin8 v ++ [2] ++ [6])
       simp
-    · show 5 :: List.map emb2fin8 v ++ [3, 6] = 5 :: (List.map emb2fin8 v ++ [3] ++ [6])
+    · show [5] ++ List.map emb2fin8 v ++ [3, 6] = [5] ++ (List.map emb2fin8 v ++ [3] ++ [6])
       simp
-  | n+2 =>
-    exfalso
-    contradiction
 
 private lemma epochRewind {v : List (Fin 2)} :
   machineRep.Derives
@@ -163,22 +153,17 @@ by
   constructor
   · simp [machineRep, rulesRep]
   intros i ok
-  cases i with
-  | zero =>
+  match i with
+  | 0 =>
     use [], List.map some v
     constructor
     · rfl
     · rfl
-  | succ z =>
-    cases z with
-    | zero =>
-      use [], List.map emb2fin8 v ++ [6]
-      constructor
-      · rfl
-      · rfl
-    | succ _ =>
-      exfalso
-      contradiction
+  | 1 =>
+    use [], List.map emb2fin8 v ++ [6]
+    constructor
+    · rfl
+    · rfl
 
 private lemma epochCheck {v : List (Fin 2)} :
   machineRep.Derives
@@ -197,15 +182,17 @@ by
   constructor
   · simp [machineRep, rulesRep]
   intros i ok
-  cases i with
-  | zero =>
+  match i with
+  | 0 =>
     use [], []
     constructor
     · rfl
     · rfl
-  | succ z =>
+  | 1 =>
     use [], []
-    simp [machineRep, rulesRep, endYes, tauRule]
+    constructor
+    · rfl
+    · rfl
 
 private lemma easyDirection {w : List (Option (Fin 2))} {v : List (Fin 2)}
     (hyp : List.map some v ++ [none] ++ List.map some v = w) :
@@ -245,15 +232,10 @@ by
     constructor
     · exact easyDirection hyp
     intros i ok
-    cases i with
-    | zero =>
+    match i with
+    | 0 =>
       left
       simp [machineRep, List.TProd.elim]
-    | succ n =>
-      cases n with
-      | zero =>
-        right
-        simp [machineRep, List.TProd.elim]
-      | succ n =>
-        simp only [machineRep] at ok
-        contradiction
+    | 1 =>
+      right
+      simp [machineRep, List.TProd.elim]
