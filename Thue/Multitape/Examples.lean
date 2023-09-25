@@ -156,11 +156,12 @@ by
     have hn' : n < v.length
     · exact hn
     apply Multi.deri_of_tran_deri _ (ih (le_of_lt hn'))
+    let n' : Fin v.length := ⟨n, hn'⟩
     rw [List.take_succ]
-    have nth_valid : Option.toList (v.get? n) = [v.get! n]
-    · sorry
+    have nth_valid : Option.toList (v.get? n) = [v.get n']
+    · rw [List.get?_eq_get hn', Option.to_list_some]
     rw [nth_valid]
-    by_cases nth_char : v.get! n = 0
+    by_cases nth_char : v.get n' = 0
     · use rewind0
       constructor
       · simp [machineRep, rulesRep]
@@ -175,13 +176,21 @@ by
         use [5] ++ List.map emb2fin8 (v.take n), (v.drop n.succ).map emb2fin8 ++ [6]
         constructor
         · convert_to
-            [5] ++ (v.take n ++ [v.get! n]).map emb2fin8 ++ [3] ++
-              (v.drop n.succ).map emb2fin8 ++ [6] =
-            ([5] ++ (v.take n).map emb2fin8) ++ [0, 3] ++
-              ((v.drop n.succ).map emb2fin8 ++ [6])
+            [5] ++ (v.take n ++ [v.get n']).map emb2fin8 ++ [3] ++ (v.drop n.succ).map emb2fin8 ++ [6] =
+            ([5] ++ (v.take n).map emb2fin8) ++ [0, 3] ++ ((v.drop n.succ).map emb2fin8 ++ [6])
           simp [nth_char]
-        · simp -- TODO !!!
-          sorry
+        · convert_to
+            [5] ++ List.map emb2fin8 (List.take n v) ++ [3] ++ List.map emb2fin8 (List.drop n v) ++ [6] =
+            [5] ++ List.map emb2fin8 (List.take n v) ++ [3, 0] ++ (List.map emb2fin8 (List.drop (Nat.succ n) v) ++ [6])
+          have key : (v.drop n).map emb2fin8 = [0] ++ (v.drop n.succ).map emb2fin8
+          · convert_to (v.drop n).map emb2fin8 = [emb2fin8 (v.get n')] ++ (v.drop n.succ).map emb2fin8
+            · rw [nth_char]
+              rfl
+            convert_to (v.drop n).map emb2fin8 = ([v.get n'] ++ v.drop n.succ).map emb2fin8
+            apply congr_arg
+            exact List.drop_eq_get_cons hn'
+          rw [key]
+          simp
     · sorry
 
 private lemma epochRewind {v : List (Fin 2)} :
