@@ -73,7 +73,8 @@ by
     specialize ih (le_of_lt hn)
     apply Multi.deri_of_deri_tran ih
     cases v.drop n with
-    | nil => sorry
+    | nil =>
+      sorry
     | cons a l =>
       have vdropsucc : v.drop n.succ = l
       · sorry
@@ -83,8 +84,8 @@ by
       rw [List.map_cons, List.singleton_append_cons_eq_doubleton_append]
       rw [List.map_append, List.map_singleton, ←List.append_assoc]
       rw [List.append_assoc _ [emb2fin8 a] _]
-      by_cases a_is : a = 0
-      · rw [a_is]
+      match a with
+      | 0 =>
         use move0
         constructor
         · simp [machineRep, rulesRep]
@@ -100,7 +101,8 @@ by
             sorry
         | 1 =>
           sorry
-      · sorry
+      | 1 =>
+        sorry
 
 private lemma epochScan {v : List (Fin 2)} :
   machineRep.Derives
@@ -161,8 +163,12 @@ by
     have nth_valid : Option.toList (v.get? n) = [v.get n']
     · rw [List.get?_eq_get hn', Option.to_list_some]
     rw [nth_valid]
-    by_cases nth_char : v.get n' = 0
-    · use rewind0
+    match vgn : v.get n' with
+    | 0 =>
+      have nth_char : v.get n' = 0
+      · exact vgn
+      clear vgn
+      use rewind0
       constructor
       · simp [machineRep, rulesRep]
       intro i iok
@@ -176,9 +182,9 @@ by
         use [5] ++ List.map emb2fin8 (v.take n), (v.drop n.succ).map emb2fin8 ++ [6]
         constructor
         · convert_to
-            [5] ++ (v.take n ++ [v.get n']).map emb2fin8 ++ [3] ++ (v.drop n.succ).map emb2fin8 ++ [6] =
+            [5] ++ (v.take n ++ [0]).map emb2fin8 ++ [3] ++ (v.drop n.succ).map emb2fin8 ++ [6] =
             ([5] ++ (v.take n).map emb2fin8) ++ [0, 3] ++ ((v.drop n.succ).map emb2fin8 ++ [6])
-          simp [nth_char]
+          simp
         · convert_to
             [5] ++ List.map emb2fin8 (List.take n v) ++ [3] ++ List.map emb2fin8 (List.drop n v) ++ [6] =
             [5] ++ List.map emb2fin8 (List.take n v) ++ [3, 0] ++ (List.map emb2fin8 (List.drop (Nat.succ n) v) ++ [6])
@@ -191,7 +197,39 @@ by
             exact List.drop_eq_get_cons hn'
           rw [key]
           simp
-    · sorry
+    | 1 =>
+      have nth_char : v.get n' = 1
+      · exact vgn
+      clear vgn
+      use rewind1
+      constructor
+      · simp [machineRep, rulesRep]
+      intro i iok
+      match i with
+      | 0 =>
+        use [], v.map some
+        constructor
+        · rfl
+        · rfl
+      | 1 =>
+        use [5] ++ List.map emb2fin8 (v.take n), (v.drop n.succ).map emb2fin8 ++ [6]
+        constructor
+        · convert_to
+            [5] ++ (v.take n ++ [1]).map emb2fin8 ++ [3] ++ (v.drop n.succ).map emb2fin8 ++ [6] =
+            ([5] ++ (v.take n).map emb2fin8) ++ [1, 3] ++ ((v.drop n.succ).map emb2fin8 ++ [6])
+          simp
+        · convert_to
+            [5] ++ List.map emb2fin8 (List.take n v) ++ [3] ++ List.map emb2fin8 (List.drop n v) ++ [6] =
+            [5] ++ List.map emb2fin8 (List.take n v) ++ [3, 1] ++ (List.map emb2fin8 (List.drop (Nat.succ n) v) ++ [6])
+          have key : (v.drop n).map emb2fin8 = [1] ++ (v.drop n.succ).map emb2fin8
+          · convert_to (v.drop n).map emb2fin8 = [emb2fin8 (v.get n')] ++ (v.drop n.succ).map emb2fin8
+            · rw [nth_char]
+              rfl
+            convert_to (v.drop n).map emb2fin8 = ([v.get n'] ++ v.drop n.succ).map emb2fin8
+            apply congr_arg
+            exact List.drop_eq_get_cons hn'
+          rw [key]
+          simp
 
 private lemma epochRewind {v : List (Fin 2)} :
   machineRep.Derives
